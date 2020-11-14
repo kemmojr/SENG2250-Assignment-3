@@ -84,6 +84,25 @@ def get_n_bit_number(size):
     return random.randrange(2 ** (size - 1) + 1, 2 ** size - 1)
 
 
+def euclidean_alg(a, b): # gets the GCD of a and b
+    if a == 0:
+        return b
+    elif b == 0:
+        return a
+
+    q = int(a/b)
+    r = a % b
+    return euclidean_alg(b, r)
+
+
+def extended_euclidean_alg(base, mod, i):
+    if i == 0 or i == 1:
+        p = i
+    else:
+        p = 2
+    p = 0
+    rem = mod % base
+    n_mod = base
 # p = get_rsa_prime()
 # q = get_rsa_prime()
 p = 3
@@ -105,10 +124,11 @@ decrypt = encrypt**d % n
 # Y = mod_exponentiation(X, e, n)
 # decrypted = mod_exponentiation(Y, d, n)
 # print(decrypted)
+# print(mod_exponentiation(crypt, 7, 26))
+
 h1 = hashlib.sha256(b"Thing to be hashed")
 h2 = hashlib.sha256(b"Thing to be hashed")
-# if h1.digest() == h2.digest():
-#    print("The hashes match")
+
 
 HOST = ''
 PORT = 60051
@@ -122,6 +142,25 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         while True:
             data = conn.recv(1024)
             if not data: break
-            conn.sendall(data)
+            if data == b'Client Hello':
+                print("message recieved! message information:\n")
+                conn.sendall(b'Server Continue')
+                data = conn.recv(1024)
+                print(str(data))
+                conn.sendall(b'Server Hello')
+                data = conn.recv(1024)
+                conn.sendall(b'SSL version that the server and client support\\'
+                             b'Timestamp\\nonce\\Session ID\\Selected cipher\\Selected compression method')
+                data = conn.recv(1024)
+                conn.sendall(b'Server Hello Done')
+                # Server finished - changes it's cipher spec and responds finished
+
+                # conn.sendall(b'Server finished')
+            elif data == b'Client Finished':
+                conn.sendall(b'Server finished')
+                print("Server has Finished")
+            else:
+                conn.sendall(data)
+                print("Received "+str(data))
 
 
